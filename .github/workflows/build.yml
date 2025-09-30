@@ -11,6 +11,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Cache cosmocc-4.0.2
+        uses: actions/cache@v4
+        with:
+          path: cosmocc-4.0.2
+          key: ${{ runner.os }}-cosmocc-4.0.2
+
       - name: Install dependencies
         run: |
           sudo apt-get update
