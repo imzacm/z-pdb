@@ -1,10 +1,14 @@
-name: Build
+name: Release
 
 on:
-  push:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
 
 jobs:
-  build:
+  build-and-upload:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,7 +26,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake unzip wget
 
-      - name: Build and run
+      - name: Build
+        shell: bash
         run: |
           set -Eeuo pipefail
           # Set up Cosmopolitan toolchain in PATH
@@ -33,10 +38,13 @@ jobs:
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/cosmo.cmake
           ninja
-    
-          echo abc | ./src/z_pdb write
-          content=$(./src/z_pdb print)
-          if [[ "$content" != "abc" ]]; then
-            echo "Write failed"
-            exit 1
-          fi
+
+      - name: Upload artifacts
+        run: |
+          set -Eeuo pipefail
+          cd build/src
+          
+          cp ./z_pdb ./z_pdb.exe
+          cp ./z_pdb ./z_pdb.zip
+          
+          gh release upload ${{ github.event.release.tag_name }} z_pdb z_pdb.com.dbg z_pdb.aarch64.elf z_pdb.exe z_pdb.zip
