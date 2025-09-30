@@ -55,6 +55,8 @@ jobs:
         with:
           name: z_pdb
 
+      - run: chmod +x z_pdb
+
       - name: Test
         run: |
           set -Eeuo pipefail
@@ -74,6 +76,8 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: z_pdb
+
+      - run: chmod +x z_pdb
 
       - name: Test
         run: |
