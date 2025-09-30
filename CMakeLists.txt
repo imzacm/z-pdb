@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(z_pdb LANGUAGES C)
+project(z_pdb VERSION 0.1 LANGUAGES C)
 
 set(PROJECT_AUTHOR "Zac McChesney")
 
