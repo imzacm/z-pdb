@@ -48,6 +48,7 @@ jobs:
 
   test-linux:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Download z_pdb
         uses: actions/download-artifact@v5
@@ -67,6 +68,7 @@ jobs:
 
   test-macos:
     runs-on: macos-latest
+    needs: build
     steps:
       - name: Download z_pdb
         uses: actions/download-artifact@v5
@@ -86,6 +88,7 @@ jobs:
 
   test-windows:
     runs-on: windows-latest
+    needs: build
     steps:
       - name: Download z_pdb
         uses: actions/download-artifact@v5
