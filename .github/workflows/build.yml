@@ -31,7 +31,7 @@ jobs:
     
           echo abc | ./src/z_pdb write
           content=$(./src/z_pdb print)
-          if [[ "$content" != "abc\n" ]]; then
+          if [[ "$content" != "abc" ]]; then
             echo "Write failed"
             exit 1
           fi
