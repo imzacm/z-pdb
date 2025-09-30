@@ -1,3 +1,5 @@
+#include <errno.h>
+
 #include "zip_file.h"
 
 FILE *open_zip_file(const char *zip_path, const char *entry_path) {
@@ -42,8 +44,13 @@ FILE *open_zip_file(const char *zip_path, const char *entry_path) {
 }
 
 int delete_zip_file(const char *zip_path, const char *entry_path) {
-  struct zip_t *zip = zip_open(zip_path, 0, 'd');
-  if (zip == NULL) {
+  int zip_errnum = 0;
+  struct zip_t *zip = zip_openwitherror(zip_path, 0, 'd', &zip_errnum);
+  if (zip_errnum == ZIP_EOPNFILE && (errno == EPERM || errno == EACCES)) {
+    printf("Zip error: %d\nError: %d\n", zip_errnum, errno);
+    return -1;
+    // TODO: MMAP
+  } else if (zip == NULL) {
     return -1;
   }
 
