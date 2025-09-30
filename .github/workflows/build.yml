@@ -104,6 +104,9 @@ jobs:
 
       - name: Test
         run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+          
           "abc" | ./z_pdb write
           $content = ./z_pdb print
           if ($content.Trim() -ne "abc") {
