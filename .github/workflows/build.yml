@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+    paths:
+      - .github/workflows/build.yml
+      - cmake/**
+      - src/**
+      - CMakeLists.txt
+      - env.sh
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Cache cosmocc-4.0.2
+        uses: actions/cache@v4
+        with:
+          path: cosmocc-4.0.2
+          key: ${{ runner.os }}-cosmocc-4.0.2
+
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        with:
+          packages: ninja-build cmake unzip wget
+          version: 1.0
+
+      - name: Build and run
+        run: |
+          set -Eeuo pipefail
+          # Set up Cosmopolitan toolchain in PATH
+          source env.sh
+
+          # Configure and build with Ninja
+          mkdir -p build
+          cd build
+          cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/cosmo.cmake
+          ninja
+    
+          echo abc | ./src/z_pdb write
+          content=$(./src/z_pdb print)
+          if [[ "$content" != "abc" ]]; then
+            echo "Write failed"
+            exit 1
+          fi
