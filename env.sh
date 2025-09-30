@@ -20,4 +20,4 @@ if [[ ! -d $cosmo_dir ]]; then
   popd
 fi
 
-export PATH="${script_dir}/cosmocc/bin:$PATH"
+export PATH="${cosmo_dir}/bin:$PATH"
