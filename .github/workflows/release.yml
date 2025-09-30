@@ -55,7 +55,7 @@ jobs:
       - name: Update release notes
         run: |
           set -Eeuo pipefail
-          echo "${{ github.event.release.body }}" > notes.txt
+          echo "${{ github.event.release.body }}\n" > notes.txt
           echo "${APPEND_BODY}" >> notes.txt
           gh release edit ${{ github.event.release.tag_name }} --notes-file notes.txt
         env:
