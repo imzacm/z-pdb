@@ -24,9 +24,10 @@ jobs:
           key: ${{ runner.os }}-cosmocc-4.0.2
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build cmake unzip wget
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        with:
+          packages: ninja-build cmake unzip wget
+          version: 1.0
 
       - name: Build and run
         run: |
