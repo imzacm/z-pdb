@@ -56,8 +56,6 @@ int main(const int argc, const char **argv) {
     }
   }
 
-  // printf("EXE: %s\n", exe_path);
-
   FILE *file = open_zip_file(exe_path, "file.txt");
   if (file == NULL) {
     print_error();
@@ -118,7 +116,12 @@ int main(const int argc, const char **argv) {
 
   if (write_file == file) {
     delete_zip_file(exe_path, "file.txt");
-    save_zip_file(exe_path, "file.txt", file);
+    if (save_zip_file(exe_path, "file.txt", file) != 0) {
+      print_error();
+      printf("EXE: %s\n", exe_path);
+      fclose(file);
+      return 1;
+    }
   }
 
   fclose(file);
