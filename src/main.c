@@ -19,9 +19,13 @@ void print_usage(const char *exe_name) {
 }
 
 int main(const int argc, const char **argv) {
-  if (argc == 0) {
+  if (argc < 2) {
+    const char *exe_name = "z_pdb";
+    if (argc == 1) {
+      exe_name = argv[0];
+    }
     fprintf(stderr, "No arguments\n");
-    print_usage("z_pdb");
+    print_usage(exe_name);
     return 1;
   }
 
@@ -65,7 +69,7 @@ int main(const int argc, const char **argv) {
   // If print, this is stdout, else this is file.
   FILE *write_file;
 
-  if (argc == 1 || strcmp(argv[1], "print") == 0) {
+  if (strcmp(argv[1], "print") == 0) {
     rewind(file);
     read_file = file;
     write_file = stdout;
