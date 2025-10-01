@@ -4,6 +4,9 @@
 #include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
+
+#include <libc/runtime/symbols.internal.h>
 
 #include "zip_file.h"
 
@@ -32,35 +35,12 @@ int main(const int argc, const char **argv) {
     return 1;
   }
 
+  const char *exe = FindComBinary();
   char exe_path[PATH_MAX];
-  if (strlen(argv[0]) >= PATH_MAX) {
-    fprintf(stderr, "Path too long\n");
-    return 1;
-  }
-  strcpy(exe_path, argv[0]);
-
-  // Trim `.com.dbg` or `.aarch64.elf` by replacing the first dot with 0.
-  char *exe_ext = strrchr(exe_path, '.');
-  if (exe_ext != NULL && strcmp(exe_ext, ".dbg") == 0) {
-    exe_ext[0] = 0;
-    exe_ext = strrchr(exe_path, '.');
-    if (exe_ext != NULL && strcmp(exe_ext, ".com") == 0) {
-      exe_ext[0] = 0;
-    } else {
-      exe_ext[0] = '.';
-    }
-  } else if (exe_ext != NULL && strcmp(exe_ext, ".elf") == 0) {
-    exe_ext[0] = 0;
-    exe_ext = strrchr(exe_path, '.');
-    if (exe_ext != NULL && strcmp(exe_ext, ".aarch64") == 0) {
-      exe_ext[0] = 0;
-    } else {
-      exe_ext[0] = '.';
-    }
-  }
+  strcpy(exe_path, exe);
 
   {
-    exe_ext = strrchr(exe_path, '.');
+    char *exe_ext = strrchr(exe_path, '.');
     if (exe_ext != NULL && strcmp(exe_ext, ".tmp") == 0) {
       int tmp_fd = open(exe_path, O_RDONLY);
       if (tmp_fd == -1) {
@@ -105,10 +85,15 @@ int main(const int argc, const char **argv) {
       close(tmp_fd);
       close(self_fd);
 
-      char *const tmp_argv[3] = {exe_path, "", NULL};
-      char *const tmp_env[1] = {NULL};
+      // char *const tmp_argv[3] = {exe_path, "", NULL};
+      // char *const tmp_env[1] = {NULL};
+      //
+      // execve(exe_path, tmp_argv, tmp_env);
 
-      execve(exe_path, tmp_argv, tmp_env);
+      char command[512];
+      // TODO: Ensure this is in fact windows.
+      snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+      system(command);
     }
   }
 
@@ -247,12 +232,16 @@ int main(const int argc, const char **argv) {
 
   fclose(file);
 
-  exe_ext = strrchr(exe_path, '.');
+  char *exe_ext = strrchr(exe_path, '.');
   if (exe_ext != NULL && strcmp(exe_ext, ".tmp") == 0) {
-    char *const tmp_argv[3] = {exe_path, "", NULL};
-    char *const tmp_env[1] = {NULL};
+    // char *const tmp_argv[3] = {exe_path, "", NULL};
+    // char *const tmp_env[1] = {NULL};
+    // execve(exe_path, tmp_argv, tmp_env);
 
-    execve(exe_path, tmp_argv, tmp_env);
+    char command[512];
+    // TODO: Ensure this is in fact windows.
+    snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+    system(command);
   }
 
   return 0;
