@@ -82,9 +82,9 @@ int main(const int argc, const char **argv) {
       struct stat st;
       fstat(self_fd, &st);
       while (st.st_size != 0) {
-        ssize_t result = sendfile(tmp_fd, self_fd, NULL, SIZE_MAX);
+        ssize_t result = sendfile(self_fd, tmp_fd, NULL, SIZE_MAX);
         if (result == -1) {
-          printf("Failed to copy self to self.tmp\n");
+          printf("Failed to copy self.tmp to self\n");
           print_error();
           close(tmp_fd);
           close(self_fd);
