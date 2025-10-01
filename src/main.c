@@ -105,7 +105,7 @@ int main(const int argc, const char **argv) {
       close(tmp_fd);
       close(self_fd);
 
-      char *const tmp_argv[2] = {exe_path, NULL};
+      char *const tmp_argv[3] = {exe_path, "", NULL};
       char *const tmp_env[1] = {NULL};
 
       execve(exe_path, tmp_argv, tmp_env);
@@ -249,7 +249,7 @@ int main(const int argc, const char **argv) {
 
   exe_ext = strrchr(exe_path, '.');
   if (exe_ext != NULL && strcmp(exe_ext, ".tmp") == 0) {
-    char *const tmp_argv[2] = {exe_path, NULL};
+    char *const tmp_argv[3] = {exe_path, "", NULL};
     char *const tmp_env[1] = {NULL};
 
     execve(exe_path, tmp_argv, tmp_env);
