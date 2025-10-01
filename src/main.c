@@ -79,20 +79,31 @@ int main(const int argc, const char **argv) {
         return 1;
       }
 
-      struct stat st;
-      fstat(tmp_fd, &st);
-      while (st.st_size != 0) {
-        ssize_t result = sendfile(self_fd, tmp_fd, NULL, SIZE_MAX);
-        if (result == -1) {
-          printf("Failed to copy self.tmp to self\n");
+      char buffer[BUFFER_SIZE];
+      ssize_t bytes_read;
+      while ((bytes_read = read(tmp_fd, buffer, sizeof(buffer))) > 0) {
+        ssize_t bytes_written = write(self_fd, buffer, bytes_read);
+        if (bytes_written != bytes_read) {
+          printf("Failed to write to self\n");
           print_error();
           close(tmp_fd);
           close(self_fd);
           return 1;
         }
-
-        st.st_size -= result;
       }
+
+      // Check if the read loop terminated because of an error.
+      if (bytes_read == -1) {
+        printf("Failed to read from self.tmp\n");
+        print_error();
+        close(tmp_fd);
+        close(self_fd);
+        return 1;
+      }
+
+      printf("Successfully copied self.tmp to self\n");
+      close(tmp_fd);
+      close(self_fd);
 
       char *const tmp_argv[2] = {exe_path, NULL};
       char *const tmp_env[1] = {NULL};
@@ -138,20 +149,31 @@ int main(const int argc, const char **argv) {
         return 1;
       }
 
-      struct stat st;
-      fstat(self_fd, &st);
-      while (st.st_size != 0) {
-        ssize_t result = sendfile(tmp_fd, self_fd, NULL, SIZE_MAX);
-        if (result == -1) {
-          printf("Failed to copy self to self.tmp\n");
+      char buffer[BUFFER_SIZE];
+      ssize_t bytes_read;
+      while ((bytes_read = read(self_fd, buffer, sizeof(buffer))) > 0) {
+        ssize_t bytes_written = write(tmp_fd, buffer, bytes_read);
+        if (bytes_written != bytes_read) {
+          printf("Failed to write to self.tmp\n");
           print_error();
           close(tmp_fd);
           close(self_fd);
           return 1;
         }
-
-        st.st_size -= result;
       }
+
+      // Check if the read loop terminated because of an error.
+      if (bytes_read == -1) {
+        printf("Failed to read from self\n");
+        print_error();
+        close(tmp_fd);
+        close(self_fd);
+        return 1;
+      }
+
+      printf("Successfully copied self to self.tmp\n");
+      close(tmp_fd);
+      close(self_fd);
     }
   }
 
