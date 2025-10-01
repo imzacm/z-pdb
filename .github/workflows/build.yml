@@ -12,7 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -40,10 +39,77 @@ jobs:
           cd build
           cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/cosmo.cmake
           ninja
-    
-          echo abc | ./src/z_pdb write
-          content=$(./src/z_pdb print)
+
+      - name: Upload z_pdb
+        uses: actions/upload-artifact@v4
+        with:
+          name: z_pdb
+          path: build/src/z_pdb
+
+  test-linux:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download z_pdb
+        uses: actions/download-artifact@v5
+        with:
+          name: z_pdb
+
+      - run: chmod +x z_pdb
+
+      - name: Test
+        run: |
+          set -Eeuo pipefail
+          
+          echo abc | ./z_pdb write
+          content=$(./z_pdb print)
           if [[ "$content" != "abc" ]]; then
             echo "Write failed"
             exit 1
           fi
+
+  test-macos:
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Download z_pdb
+        uses: actions/download-artifact@v5
+        with:
+          name: z_pdb
+
+      - run: chmod +x z_pdb
+
+      - name: Test
+        run: |
+          set -Eeuo pipefail
+          
+          echo abc | ./z_pdb write
+          content=$(./z_pdb print)
+          if [[ "$content" != "abc" ]]; then
+            echo "Write failed"
+            exit 1
+          fi
+
+  test-windows:
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - name: Download z_pdb
+        uses: actions/download-artifact@v5
+        with:
+          name: z_pdb
+
+      - name: Rename z_pdb to z_pdb.exe
+        run: Rename-Item -Path "z_pdb" -NewName "z_pdb.exe"
+
+      - name: Test
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+          
+          "abc" | ./z_pdb write
+          $content = ./z_pdb print
+          if ($content.Trim() -ne "abc") {
+            Write-Host "Write failed"
+            exit 1
+          }
