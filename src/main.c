@@ -92,7 +92,8 @@ int main(const int argc, const char **argv) {
 
       char command[512];
       // TODO: Ensure this is in fact windows.
-      snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+      // snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+      snprintf(command, sizeof(command), "cmd /c start \"%s\"", exe_path);
       system(command);
     }
   }
@@ -240,7 +241,8 @@ int main(const int argc, const char **argv) {
 
     char command[512];
     // TODO: Ensure this is in fact windows.
-    snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+    // snprintf(command, sizeof(command), "start \"%s\"", exe_path);
+    snprintf(command, sizeof(command), "cmd /c start \"%s\"", exe_path);
     system(command);
   }
 
