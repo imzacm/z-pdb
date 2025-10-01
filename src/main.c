@@ -1,6 +1,9 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "zip_file.h"
 
@@ -53,6 +56,102 @@ int main(const int argc, const char **argv) {
       exe_ext[0] = 0;
     } else {
       exe_ext[0] = '.';
+    }
+  }
+
+  {
+    exe_ext = strrchr(exe_path, '.');
+    if (exe_ext != NULL && strcmp(exe_ext, ".tmp") == 0) {
+      int tmp_fd = open(exe_path, O_RDONLY);
+      if (tmp_fd == -1) {
+        printf("Failed to open self.tmp as readonly\n");
+        print_error();
+        return 1;
+      }
+
+      exe_ext[0] = 0;
+
+      int self_fd = open(exe_path, O_RDWR | O_CREAT | O_TRUNC, 0777);
+      if (self_fd == -1) {
+        close(tmp_fd);
+        printf("Failed to create/truncate self\n");
+        print_error();
+        return 1;
+      }
+
+      struct stat st;
+      fstat(self_fd, &st);
+      while (st.st_size != 0) {
+        ssize_t result = sendfile(tmp_fd, self_fd, NULL, SIZE_MAX);
+        if (result == -1) {
+          printf("Failed to copy self to self.tmp\n");
+          print_error();
+          close(tmp_fd);
+          close(self_fd);
+          return 1;
+        }
+
+        st.st_size -= result;
+      }
+
+      char *const tmp_argv[2] = {exe_path, NULL};
+      char *const tmp_env[1] = {NULL};
+
+      execve(exe_path, tmp_argv, tmp_env);
+    }
+  }
+
+  {
+    size_t exe_path_end = strlen(exe_path);
+    strcpy(&exe_path[exe_path_end], ".tmp");
+
+    if (access(exe_path, F_OK) == 0) {
+      if (unlink(exe_path) != 0) {
+        printf("Failed to delete tmp file\n");
+        print_error();
+        return 1;
+      }
+      return 0;
+    }
+
+    exe_path[exe_path_end] = 0;
+  }
+
+  {
+    int self_fd = open(exe_path, O_RDWR);
+    // O_RDONLY
+    if (self_fd == -1 && (errno == EPERM || errno == EACCES)) {
+      self_fd = open(exe_path, O_RDONLY);
+      if (self_fd == -1) {
+        printf("Failed to open self as readonly\n");
+        print_error();
+        return 1;
+      }
+
+      size_t exe_path_end = strlen(exe_path);
+      strcpy(&exe_path[exe_path_end], ".tmp");
+      int tmp_fd = open(exe_path, O_RDWR | O_CREAT | O_TRUNC, 0777);
+      if (tmp_fd == -1) {
+        close(self_fd);
+        printf("Failed to create self.tmp\n");
+        print_error();
+        return 1;
+      }
+
+      struct stat st;
+      fstat(self_fd, &st);
+      while (st.st_size != 0) {
+        ssize_t result = sendfile(tmp_fd, self_fd, NULL, SIZE_MAX);
+        if (result == -1) {
+          printf("Failed to copy self to self.tmp\n");
+          print_error();
+          close(tmp_fd);
+          close(self_fd);
+          return 1;
+        }
+
+        st.st_size -= result;
+      }
     }
   }
 
@@ -125,6 +224,14 @@ int main(const int argc, const char **argv) {
   }
 
   fclose(file);
+
+  exe_ext = strrchr(exe_path, '.');
+  if (exe_ext != NULL && strcmp(exe_ext, ".tmp") == 0) {
+    char *const tmp_argv[2] = {exe_path, NULL};
+    char *const tmp_env[1] = {NULL};
+
+    execve(exe_path, tmp_argv, tmp_env);
+  }
 
   return 0;
 }
