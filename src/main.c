@@ -80,7 +80,7 @@ int main(const int argc, const char **argv) {
       }
 
       struct stat st;
-      fstat(self_fd, &st);
+      fstat(tmp_fd, &st);
       while (st.st_size != 0) {
         ssize_t result = sendfile(self_fd, tmp_fd, NULL, SIZE_MAX);
         if (result == -1) {
